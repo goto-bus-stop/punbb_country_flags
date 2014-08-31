@@ -2,104 +2,104 @@
 <!DOCTYPE extension SYSTEM "ext-1.0.dtd">
 
 <extension engine="1.0">
-	<id>punbb-country-flags</id>
-	<title>User Countries + Flags</title>
-	<version>0.4.13</version>
-	<description>Adds country flags (https://github.com/lipis/flag-icon-css) to user profiles, as well as a dedicated country option (rather than `Location:`).</description>
-	<author>goto-bus-stop</author>
+  <id>punbb_country_flags</id>
+  <title>User Countries + Flags</title>
+  <version>0.4.13</version>
+  <description>Adds country flags (https://github.com/lipis/flag-icon-css) to user profiles, as well as a dedicated country option (rather than `Location:`).</description>
+  <author>goto-bus-stop</author>
 
-	<minversion>1.4RC1</minversion>
-	<maxtestedon>1.4.2</maxtestedon>
-		
-	<install><![CDATA[
-		if (!$forum_db->field_exists('users', 'country'))
-		{
-			$forum_db->add_field('users', 'country', 'CHAR(2)', true, 'xx');
-		}
-	]]></install>
+  <minversion>1.4RC1</minversion>
+  <maxtestedon>1.4.2</maxtestedon>
+    
+  <install><![CDATA[
+    if (!$forum_db->field_exists('users', 'country'))
+    {
+      $forum_db->add_field('users', 'country', 'CHAR(2)', true, 'xx');
+    }
+  ]]></install>
 
-	<uninstall><![CDATA[
-		$forum_db->drop_field('users', 'country');
-	]]></uninstall>
+  <uninstall><![CDATA[
+    $forum_db->drop_field('users', 'country');
+  ]]></uninstall>
 
-	<hooks>
-		<hook id="pf_change_details_identity_validation"><![CDATA[
-			if (isset($_POST['form']['country']))
-			{
-				$country = $_POST['form']['country'];
-				if ($country === 'xx') $form['country'] = 'xx';
-				else
-				{
-					$countries = include($ext_info['path'].'/include/countries.php');
-					if (isset($countries[strtoupper($country)])) $form['country'] = strtolower($country);
-				}
-			}
+  <hooks>
+    <hook id="pf_change_details_identity_validation"><![CDATA[
+      if (isset($_POST['form']['country']))
+      {
+        $country = $_POST['form']['country'];
+        if ($country === 'xx') $form['country'] = 'xx';
+        else
+        {
+          $countries = include($ext_info['path'].'/include/countries.php');
+          if (isset($countries[strtoupper($country)])) $form['country'] = strtolower($country);
+        }
+      }
     ]]></hook>
-		
-		<hook id="hd_head"><![CDATA[
-			$forum_loader->add_css($ext_info['url'].'/flag-icon-css/css/flag-icon.min.css', array( 'type' => 'url', 'media' => 'screen' ));
+    
+    <hook id="hd_head"><![CDATA[
+      $forum_loader->add_css($ext_info['url'].'/flag-icon-css/css/flag-icon.min.css', array( 'type' => 'url', 'media' => 'screen' ));
     ]]></hook>
-		
+    
     <hook id="in_users_online_qr_get_online_info, vt_qr_get_posts, ul_qr_get_users"><![CDATA[
-			$query['SELECT'] .= ', u.country';
+      $query['SELECT'] .= ', u.country';
     ]]></hook>
-		
-		<!-- online users -->
+    
+    <!-- online users -->
     <hook id="in_users_online_pre_online_info_output" priority="7"><![CDATA[
-			$result = $forum_db->query_build($query) or error(__FILE__, __LINE__);
+      $result = $forum_db->query_build($query) or error(__FILE__, __LINE__);
 
       $i = 0;
-			while ($forum_user_online = $forum_db->fetch_assoc($result))
-			{
-				if ($forum_user_online['user_id'] > 1)
-				{
-					$users[$i] = '<span class="flag-icon flag-icon-'.(!empty($forum_user_online['country']) ? $forum_user_online['country'] : 'xx').'"></span> '.$users[$i];
-					$i++;
-				}
-			}
-		]]></hook>
+      while ($forum_user_online = $forum_db->fetch_assoc($result))
+      {
+        if ($forum_user_online['user_id'] > 1)
+        {
+          $users[$i] = '<span class="flag-icon flag-icon-'.(!empty($forum_user_online['country']) ? $forum_user_online['country'] : 'xx').'"></span> '.$users[$i];
+          $i++;
+        }
+      }
+    ]]></hook>
 
-		<!-- user list -->
-		<hook id="ul_results_row_pre_data_output"><![CDATA[
-			$replace = forum_htmlencode($user_data['username']).'</a>';
-			$forum_page['table_row']['username'] = str_replace($replace, '<span class="flag-icon flag-icon-'.$user_data['country'].'"></span> '.$replace, $forum_page['table_row']['username']);
-		]]></hook>
-		
-		<!-- post author -->
-		<hook id="vt_row_pre_post_ident_merge" priority="7"><![CDATA[
-			if ($cur_post['poster_id'] > 1)
-	 		{
+    <!-- user list -->
+    <hook id="ul_results_row_pre_data_output"><![CDATA[
+      $replace = forum_htmlencode($user_data['username']).'</a>';
+      $forum_page['table_row']['username'] = str_replace($replace, '<span class="flag-icon flag-icon-'.$user_data['country'].'"></span> '.$replace, $forum_page['table_row']['username']);
+    ]]></hook>
+    
+    <!-- post author -->
+    <hook id="vt_row_pre_post_ident_merge" priority="7"><![CDATA[
+      if ($cur_post['poster_id'] > 1)
+      {
         // hack <3
-				$forum_page['post_ident']['byline'] = str_replace('<a title="', '<i class="flag-icon flag-icon-'.$cur_post['country'].'"></i> <a title="', $forum_page['post_ident']['byline']);
-				// unused
-				unset($cur_post['location']);
-			}
-		]]></hook>
+        $forum_page['post_ident']['byline'] = str_replace('<a title="', '<i class="flag-icon flag-icon-'.$cur_post['country'].'"></i> <a title="', $forum_page['post_ident']['byline']);
+        // unused
+        unset($cur_post['location']);
+      }
+    ]]></hook>
 
-		<!-- profile -->
-		<hook id="pf_change_details_identity_pre_location"><![CDATA[
-			$countries = include($ext_info['path'].'/include/countries.php');
-			asort($countries);
+    <!-- profile -->
+    <hook id="pf_change_details_identity_pre_location"><![CDATA[
+      $countries = include($ext_info['path'].'/include/countries.php');
+      asort($countries);
       $country = strtolower(isset($form['country']) ? $form['country'] : $user['country']);
       $countryOptions = '<option value="xx"'.($country === 'xx' ? ' selected' : '').'>Other Countries</option>';
       foreach ($countries as $code => $name) $countryOptions .= '<option value="'.strtolower($code).'"'.(strtolower($code) == $country ? ' selected' : '').'>'.$name.'</option>';
-			echo '<div class="sf-set set'.(++$forum_page['item_count']).'">
-					<div class="sf-box select">
-						<label for="fld'.(++$forum_page['fld_count']).'"><span>'.$lang_profile['Location'].'</span></label><br />
-						<span class="fld-input">
-							<span class="flag-icon flag-icon-'.$country.'"></span>
-							<select id="fld'.$forum_page['fld_count'].'" name="form[country]">
-								'.$countryOptions.'
-   						</select>
+      echo '<div class="sf-set set'.(++$forum_page['item_count']).'">
+          <div class="sf-box select">
+            <label for="fld'.(++$forum_page['fld_count']).'"><span>'.$lang_profile['Location'].'</span></label><br />
+            <span class="fld-input">
+              <span class="flag-icon flag-icon-'.$country.'"></span>
+              <select id="fld'.$forum_page['fld_count'].'" name="form[country]">
+                '.$countryOptions.'
+              </select>
             </span>
-					</div>
-				</div><script>var x=document.getElementById("fld'.$forum_page['fld_count'].'"),f=x.previousElementSibling;x.addEventListener("change",function(){f.className="flag-icon flag-icon-"+x.value},false)</script>';
+          </div>
+        </div><script>var x=document.getElementById("fld'.$forum_page['fld_count'].'"),f=x.previousElementSibling;x.addEventListener("change",function(){f.className="flag-icon flag-icon-"+x.value},false)</script>';
       // hide Location: entry
       ob_start();
-		]]></hook>
-		<hook id="pf_change_details_identity_pre_admin_note"><![CDATA[
+    ]]></hook>
+    <hook id="pf_change_details_identity_pre_admin_note"><![CDATA[
       // hide Location: entry
       ob_end_clean();
-		]]></hook>
-	</hooks>
+    ]]></hook>
+  </hooks>
 </extension>
